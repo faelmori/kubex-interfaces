@@ -2,23 +2,141 @@ package main
 
 import (
 	"fmt"
-	"github.com/faelmori/kubex-interfaces/config"
+	c "github.com/faelmori/kubex-interfaces/config"
 )
 
-var _ = config.Configurable(nil)
+func testPropertyA() {
+	prop := c.NewProperty[string]("examplePropertyA", nil)
+	prop.SetValue("example")
 
-//TIP <p>To run your code, right-click the code and select <b>Run</b>.</p> <p>Alternatively, click
-// the <icon src="AllIcons.Actions.Execute"/> icon in the gutter and select the <b>Run</b> menu item from here.</p>
+	// Print the property name and value
+	println("Property Name:", prop.GetName())
+	println("Property Value:", prop.GetValue())
+	println("Property Type:", prop.GetType())
+
+	// Print the metadata
+	var metadata interface{}
+	var exists bool
+	if metadata, exists = prop.GetMetadata(""); exists {
+		println("Metadata found")
+	} else {
+		println("No metadata found")
+	}
+	println(fmt.Sprintf("Metadata: %v", metadata))
+
+	// Print metadata
+	if desc, exists := prop.GetMetadata("description"); exists {
+		println("Property Description:", desc.(string))
+	}
+}
+
+func testPropertyB() {
+	prop := c.NewProperty[string]("propertyB", nil)
+	prop.SetMetadata("description", "This is an example property")
+	// Print the property name and value
+	println("Property Name:", prop.GetName())
+	println("Property Value:", prop.GetValue())
+	println("Property Type:", prop.GetType())
+
+	// Print the metadata
+	var metadata interface{}
+	var exists bool
+	if metadata, exists = prop.GetMetadata(""); exists {
+		println("Metadata found")
+	} else {
+		println("No metadata found")
+	}
+	println(fmt.Sprintf("Metadata: %v", metadata))
+
+	// Print metadata
+	if desc, exists := prop.GetMetadata("description"); exists {
+		println("Property Description:", desc.(string))
+	}
+}
+
+func testPropertyC() {
+	prop := c.NewProperty[any]("propertyC", nil)
+	prop.SetValue("example")
+
+	// Print the property name and value
+	println("Property Name:", prop.GetName())
+	println("Property Value:", prop.GetValue())
+	println("Property Type:", prop.GetType())
+
+	// Print the metadata
+	var metadata interface{}
+	var exists bool
+	if metadata, exists = prop.GetMetadata(""); exists {
+		println("Metadata found")
+	} else {
+		println("No metadata found")
+	}
+	println(fmt.Sprintf("Metadata: %v", metadata))
+
+	// Print metadata
+	if desc, exists := prop.GetMetadata("description"); exists {
+		println("Property Description:", desc.(string))
+	}
+}
+
+func testPropertyD() {
+	prop := c.NewProperty[any]("propertyD", nil)
+	prop.SetValue(make(chan int, 1))
+
+	// Print the property name and value
+	println("Property Name:", prop.GetName())
+	println("Property Value:", prop.GetValue())
+	println("Property Type:", prop.GetType())
+
+	// Print the metadata
+	var metadata interface{}
+	var exists bool
+	if metadata, exists = prop.GetMetadata(""); exists {
+		println("Metadata found")
+	} else {
+		println("No metadata found")
+	}
+	println(fmt.Sprintf("Metadata: %v", metadata))
+
+	// Print metadata
+	if desc, exists := prop.GetMetadata("description"); exists {
+		println("Property Description:", desc.(string))
+	}
+}
+
+func testPropertyE() {
+	prop := c.NewProperty[chan int]("propertyE", nil)
+	prop.SetValue(make(chan int, 1))
+
+	// Print the property name and value
+	println("Property Name:", prop.GetName())
+	println("Property Value:", prop.GetValue())
+	println("Property Type:", prop.GetType())
+
+	// Print the metadata
+	var metadata interface{}
+	var exists bool
+	if metadata, exists = prop.GetMetadata(""); exists {
+		println("Metadata found")
+	} else {
+		println("No metadata found")
+	}
+	println(fmt.Sprintf("Metadata: %v", metadata))
+
+	// Print metadata
+	if desc, exists := prop.GetMetadata("description"); exists {
+		println("Property Description:", desc.(string))
+	}
+}
 
 func main() {
-	//TIP <p>Press <shortcut actionId="ShowIntentionActions"/> when your caret is at the underlined text
-	// to see how GoLand suggests fixing the warning.</p><p>Alternatively, if available, click the lightbulb to view possible fixes.</p>
-	s := "gopher"
-	fmt.Printf("Hello and welcome, %s!\n", s)
-
-	for i := 1; i <= 5; i++ {
-		//TIP <p>To start your debugging session, right-click your code in the editor and select the Debug option.</p> <p>We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-		// for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.</p>
-		fmt.Println("i =", 100/i)
-	}
+	testPropertyA()
+	println("======================================")
+	testPropertyB()
+	println("======================================")
+	testPropertyC()
+	println("======================================")
+	testPropertyD()
+	println("======================================")
+	testPropertyE()
 }
