@@ -42,7 +42,7 @@ func (s *KubexAuthentication) GetScope() string                    { return s.Sc
 func (s *KubexAuthentication) SetScope(scope string)               { s.Scope = scope }
 
 // NewKubexAuthentication creates a new KubexAuthentication instance with default values
-func NewKubexAuthentication() *KubexAuthentication {
+func NewKubexAuthentication(name string) *KubexAuthentication {
 	return &KubexAuthentication{
 		Username:     "",
 		Password:     "",

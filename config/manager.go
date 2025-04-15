@@ -1,14 +1,15 @@
 package config
 
 import (
+	"fmt"
 	m "github.com/faelmori/kubex-interfaces/module"
+	l "github.com/faelmori/logz"
 	"github.com/fsnotify/fsnotify"
 	v "github.com/spf13/viper"
-	l "log"
 )
 
-// ConfigManager is an interface that defines methods for managing configuration properties.
-type ConfigManager[M m.KubexModule] interface {
+// Manager is an interface that defines methods for managing configuration properties.
+type Manager[M m.KubexModule] interface {
 	// GetPropertyManager methods
 	//GetPropertyManager() (PropertyManager, error)
 
@@ -48,7 +49,7 @@ type configManager[M m.KubexModule] struct {
 	properties  map[string]interface{}
 }
 
-func NewConfigManager[M m.KubexModule](module M) ConfigManager[M] {
+func NewConfigManager[M m.KubexModule](module M) Manager[M] {
 	return &configManager[M]{
 		properties: make(map[string]interface{}),
 	}
@@ -85,6 +86,36 @@ func (cm *configManager[M]) SetupConfigFromDbService() error {
 }
 
 func (cm *configManager[M]) SetLogger(logger l.Logger) error {
+	if logger == nil {
+		return fmt.Errorf("logger cannot be nil")
+	}
+	if cm.viper == nil {
+		cm.viper = v.New()
+	}
+	cm.viper.Set("logger", logger)
+	if cm.properties == nil {
+		cm.properties = make(map[string]interface{})
+	}
+	cm.properties["logger"] = NewProperty[l.Logger]("logger", &logger)
+	return nil
+}
+
+func (cm *configManager[M]) GetLogger() *l.Logger {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (cm *configManager[M]) WatchConfig(b bool, f func(fsnotify.Event)) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (cm *configManager[M]) IsConfigWatchEnabled() bool {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (cm *configManager[M]) IsConfigLoaded() bool {
 	//TODO implement me
 	panic("implement me")
 }
@@ -110,46 +141,6 @@ func (cm *configManager[M]) GetSettings() (map[string]interface{}, error) {
 }
 
 func (cm *configManager[M]) GetSetting(key string) (interface{}, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (cm *configManager[M]) GetLogger() *l.Logger {
-	//TODO implement me
-	panic("implement me")
-}
-
-//func (cm *configManager[M]) GetDatabasesConfig() map[string]i.Database {
-//	//TODO implement me
-//	panic("implement me")
-//}
-//
-//func (cm *configManager[M]) SetDatabasesConfig(m map[string]i.Database) error {
-//	//TODO implement me
-//	panic("implement me")
-//}
-//
-//func (cm *configManager[M]) GetDatabaseConfig(s string) i.Database {
-//	//TODO implement me
-//	panic("implement me")
-//}
-//
-//func (cm *configManager[M]) SetDatabaseConfig(s string, database *i.Database) error {
-//	//TODO implement me
-//	panic("implement me")
-//}
-
-func (cm *configManager[M]) WatchConfig(b bool, f func(fsnotify.Event)) error {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (cm *configManager[M]) IsConfigWatchEnabled() bool {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (cm *configManager[M]) IsConfigLoaded() bool {
 	//TODO implement me
 	panic("implement me")
 }

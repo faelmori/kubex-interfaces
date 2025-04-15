@@ -12,7 +12,7 @@ package settings
 
 type UsersManagerConfig struct {
 	// Mutex for thread safety
-	Threading
+	//t.Threading
 	// Basic configuration fields
 	ConfigBase
 	// Persistence configuration fields
@@ -26,10 +26,10 @@ type UsersManagerConfig struct {
 // NewUsersManagerConfig creates a new UsersManagerConfig instance
 func NewUsersManagerConfig(name string) *UsersManagerConfig {
 	return &UsersManagerConfig{
-		Threading:      NewThreading(),
+		//Threading:      NewThreading(),
 		ConfigBase:     NewKubexConfigBase(name),
-		Persistence:    NewKubexPersistence(),
-		Authentication: NewKubexAuthentication(),
+		Persistence:    NewKubexPersistence(name),
+		Authentication: NewKubexAuthentication(name),
 		Certificate:    NewKubexCertificate(name),
 	}
 }

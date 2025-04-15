@@ -7,11 +7,11 @@ import (
 
 // AdvancedConfigManager is a generic configuration manager
 type AdvancedConfigManager[T m.KubexModule] struct {
-	ConfigManager[T]
+	Manager[T]
 	//Configurable
 }
 
-func NewAdvancedConfigManager[M m.KubexModule](module M) ConfigManager[M] {
+func NewAdvancedConfigManager[M m.KubexModule](module M) Manager[M] {
 	return &configManager[M]{
 		viper:       v.New(),
 		kubexModule: module,

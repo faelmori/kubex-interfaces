@@ -52,7 +52,7 @@ func (cs *configManager) SetupConfig() error {
 			return setupErr
 		}
 		v.SetConfigFile(cs.kbxFileSrv.GetConfigFilePath())
-		v.SetConfigType("json")
+		v.SetType("json")
 		if err := v.ReadInConfig(); err != nil {
 			v.SetConfigFile(cs.kbxFileSrv.GetConfigFilePath())
 			if err2 := v.ReadInConfig(); err2 != nil {
@@ -72,7 +72,7 @@ func (cs *configManager) LoadConfig() error {
 		cs.configPath = filepath.Join(cs.configPath, "config.json")
 	}
 	v.SetConfigFile(cs.configPath)
-	v.SetConfigType("json")
+	v.SetType("json")
 	if err := v.ReadInConfig(); err != nil {
 		v.SetConfigFile(cs.kbxFileSrv.GetConfigFilePath())
 		if err2 := v.ReadInConfig(); err2 != nil {

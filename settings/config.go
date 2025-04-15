@@ -1,6 +1,9 @@
 package settings
 
-import m "github.com/faelmori/kubex-interfaces/module"
+import (
+	m "github.com/faelmori/kubex-interfaces/module"
+	t "github.com/faelmori/kubex-interfaces/types"
+)
 
 //type ConfigCache interface {
 //}
@@ -42,61 +45,44 @@ import m "github.com/faelmori/kubex-interfaces/module"
 //	// Path to the database flag file
 //}
 
-// ConfigMode interface for configuration mode
-type ConfigMode interface {
-	// GetMode returns the weaving mode
-	GetMode() ModeType
-	// SetMode sets the weaving mode
-	SetMode(ModeType)
-	// GetConfigType returns the place where is running
-	GetConfigType() ConfigType
-	// SetConfigType sets the place where is running
-	SetConfigType(ConfigType)
-}
-
 // KubexConfigMode is a struct that holds the configuration mode
 type KubexConfigMode struct {
 	// ConfigMode interface constraint for configuration mode
-	ConfigMode
+	t.IConfigMode
 	// Mode of operation
-	Mode ModeType `json:"mode,omitempty" yaml:"mode,omitempty" gorm:"mode,default:default"`
+	Mode t.ConfigModeType `json:"mode,omitempty" yaml:"mode,omitempty" gorm:"mode,default:default"`
 	// ConfigType is the place where the is running (e.g., local, remote)
-	ConfigType ConfigType `json:"localMode,omitempty" yaml:"localMode,omitempty" gorm:"localMode,default:local"`
+	ConfigType t.ConfigType `json:"localMode,omitempty" yaml:"localMode,omitempty" gorm:"localMode,default:local"`
 }
 
-// GetMode returns the config mode
-func (s *KubexConfigMode) GetMode() ModeType { return s.Mode }
+// GetConfigMode returns the config mode
+func (s *KubexConfigMode) GetConfigMode() t.ConfigModeType { return s.Mode }
 
-// SetMode sets the config mode
-func (s *KubexConfigMode) SetMode(mode ModeType) { s.Mode = mode }
+// SetConfigMode sets the config mode
+func (s *KubexConfigMode) SetConfigMode(mode t.ConfigModeType) { s.Mode = mode }
 
 // GetConfigType returns the config type
-func (s *KubexConfigMode) GetConfigType() ConfigType { return s.ConfigType }
+func (s *KubexConfigMode) GetConfigType() t.ConfigType { return s.ConfigType }
 
 // SetConfigType sets the config type
-func (s *KubexConfigMode) SetConfigType(configType ConfigType) { s.ConfigType = configType }
-
-// Config interface for configuration
-type Config interface {
-	// GetConfig returns the configuration
-	GetConfig() Config
-	// SetConfig sets the configuration
-	SetConfig(Config)
-}
+func (s *KubexConfigMode) SetConfigType(configType t.ConfigType) { s.ConfigType = configType }
 
 // KubexConfig is a struct that holds the configuration
-type KubexConfig[M m.KubexModule] struct {
-	// Config interface for configuration
-	Config
+type KubexConfig[T m.KubexModule] struct {
+	//// Config interface for configuration
+	//t.IConfig
+	//
+	//// Mutex for thread safety
+	//t.IThreading
+	//
+	//// Basic configuration fields
+	//t.IConfigBase
+	//
+	//// Mode configuration fields
+	//t.IConfigMode
 
-	// Mutex for thread safety
-	Threading
-
-	// Basic configuration fields
-	ConfigBase
-
-	// Mode configuration fields
-	ConfigMode
+	// Configuration is a struct that holds the configuration
+	Config *KubexConfigBase `json:"config,omitempty" yaml:"config,omitempty" gorm:"config"`
 
 	// Host Server configuration fields
 	ServerConfig KubexServer `json:"serverConfig,omitempty" yaml:"serverConfig,omitempty" gorm:"serverConfig"`
@@ -106,11 +92,11 @@ type KubexConfig[M m.KubexModule] struct {
 }
 
 // GetConfig returns the configuration
-func (s *KubexConfig[M]) GetConfig() Config { return s }
+func (s *KubexConfig[M]) GetConfig() *M { return nil }
 
 // SetConfig sets the configuration
-func (s *KubexConfig[M]) SetConfig(config Config) {
-	s.Config = config
+func (s *KubexConfig[M]) SetConfig(config *M) {
+	//s.Config = config
 	//if cfg, ok := config.(*KubexConfig[M]); ok {
 	//	s.KubexConfigBase = cfg.KubexConfigBase
 	//	s.KubexConfigMode = cfg.KubexConfigMode
@@ -122,7 +108,7 @@ func (s *KubexConfig[M]) SetConfig(config Config) {
 // NewKubexConfig creates a new KubexConfig instance
 func NewKubexConfig[M m.KubexModule](name string) *KubexConfig[M] {
 	return &KubexConfig[M]{
-		Threading:  NewThreading(),
-		ConfigBase: NewKubexConfigBase(name),
+		//Threading:  NewThreading(),
+		//ConfigBase: NewKubexConfigBase(name),
 	}
 }

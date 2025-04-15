@@ -21,7 +21,7 @@ type KubexDatabaseAuth struct {
 
 func NewDatabaseAuthentication(name string) *KubexDatabaseAuth {
 	return &KubexDatabaseAuth{
-		KubexAuthentication: *NewKubexAuthentication(),
+		KubexAuthentication: *NewKubexAuthentication(name),
 		KubexConfigBase:     *NewKubexConfigBase(name),
 		KubexCertificate:    *NewKubexCertificate(name),
 	}

@@ -49,10 +49,10 @@ type ConfigMode interface {
 	GetMode() ModeType
 	// SetMode sets the weaving mode
 	SetMode(ModeType)
-	// GetConfigType returns the place where is running
-	GetConfigType() ConfigType
-	// SetConfigType sets the place where is running
-	SetConfigType(ConfigType)
+	// GetType returns the place where is running
+	GetType() ConfigType
+	// SetType sets the place where is running
+	SetType(ConfigType)
 }
 
 // KubexConfigMode is a struct that holds the configuration mode
@@ -71,11 +71,11 @@ func (s *KubexConfigMode) GetMode() ModeType { return s.Mode }
 // SetMode sets the config mode
 func (s *KubexConfigMode) SetMode(mode ModeType) { s.Mode = mode }
 
-// GetConfigType returns the config type
-func (s *KubexConfigMode) GetConfigType() ConfigType { return s.ConfigType }
+// GetType returns the config type
+func (s *KubexConfigMode) GetType() ConfigType { return s.ConfigType }
 
-// SetConfigType sets the config type
-func (s *KubexConfigMode) SetConfigType(configType ConfigType) { s.ConfigType = configType }
+// SetType sets the config type
+func (s *KubexConfigMode) SetType(configType ConfigType) { s.ConfigType = configType }
 
 // Config interface for configuration
 type Config interface {

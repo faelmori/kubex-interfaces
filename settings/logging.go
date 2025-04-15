@@ -1,6 +1,9 @@
 package settings
 
-import l "github.com/faelmori/logz"
+import (
+	"io"
+	"log"
+)
 
 // MetricsConfig is a struct that holds the configuration for metrics
 
@@ -46,9 +49,9 @@ type LoggingModesConfig struct {
 	// Output is the output destination for the logs (e.g., stdout, file)
 	Output string `json:"auditOutput,omitempty" yaml:"auditOutput,omitempty" gorm:"auditOutput,default:stdout"`
 	// Logger for logging
-	Logger *l.Logger `json:"auditLogger,omitempty" yaml:"auditLogger,omitempty"`
+	Logger *log.Logger `json:"auditLogger,omitempty" yaml:"auditLogger,omitempty"`
 	// Writers is a list of writers for the logs
-	Writers []l.Writer `json:"auditWriters,omitempty" yaml:"auditWriters,omitempty" gorm:"auditWriters,default:stdout"`
+	Writers []io.Writer `json:"auditWriters,omitempty" yaml:"auditWriters,omitempty" gorm:"auditWriters,default:stdout"`
 	// FilePath is the path to the log file
 	FilePath string `json:"auditFilePath,omitempty" yaml:"auditFilePath,omitempty" gorm:"auditFilePath,default:stdout"`
 	// FileMaxSize is the maximum size of the log file in megabytes
@@ -75,9 +78,9 @@ type BaseLoggingConfig struct {
 	// Output is the output destination for the logs (e.g., stdout, file)
 	Output string `json:"output,omitempty" yaml:"output,omitempty" gorm:"output,default:stdout"`
 	// Logger for logging
-	Logger *l.Logger `json:"logger,omitempty" yaml:"logger,omitempty"`
+	Logger *log.Logger `json:"logger,omitempty" yaml:"logger,omitempty"`
 	// Writers is a list of writers for the logs
-	Writers []l.Writer `json:"writers,omitempty" yaml:"writers,omitempty" gorm:"writers,default:stdout"`
+	Writers []io.Writer `json:"writers,omitempty" yaml:"writers,omitempty" gorm:"writers,default:stdout"`
 }
 
 // LoggingConfig is a struct that holds the configuration for logging
@@ -102,7 +105,7 @@ type LoggingConfig struct {
 }
 
 // NewLoggingConfig creates a new LoggingConfig instance with default values
-func NewLoggingConfig() *LoggingConfig {
+func NewLoggingConfig(name string) *LoggingConfig {
 	threading := NewThreading()
 	return &LoggingConfig{
 		KubexThreading: *threading,
@@ -113,7 +116,7 @@ func NewLoggingConfig() *LoggingConfig {
 			LogFormat: "text",
 			Output:    "stdout",
 			Logger:    nil,
-			Writers:   []l.Writer{},
+			Writers:   []io.Writer{},
 		},
 		LoggingModes: LoggingModesConfig{},
 		Metrics:      nil, //NewMetricsConfig(),

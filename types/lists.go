@@ -1,4 +1,4 @@
-package settings
+package types
 
 import (
 	"time"
@@ -13,7 +13,6 @@ const (
 	ExpertMode   ModeType = "expert"
 )
 
-// ConfigType represents the place where the spider is running
 type ConfigType string
 
 const (

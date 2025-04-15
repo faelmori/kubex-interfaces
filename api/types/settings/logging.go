@@ -1,6 +1,9 @@
 package settings
 
-import l "github.com/faelmori/logz"
+import (
+	"github.com/faelmori/kubex-interfaces/settings"
+	l "github.com/faelmori/logz"
+)
 
 // MetricsConfig is a struct that holds the configuration for metrics
 
@@ -23,7 +26,7 @@ type MetricsWatcherConfig struct {
 	// Mutex for thread safety
 	KubexThreading
 	// Basic fields
-	KubexConfigBase
+	settings.KubexConfigBase
 	// Metrics is the metrics configuration
 	Metrics *MetricsConfig `json:"metrics,omitempty" yaml:"metrics,omitempty" gorm:"metrics"`
 	// Upgrader is the upgrader for the metrics
@@ -116,8 +119,8 @@ func NewLoggingConfig() *LoggingConfig {
 			Writers:   []l.Writer{},
 		},
 		LoggingModes: LoggingModesConfig{
-			KubexThreading: NewThreading(),
-			Metrics:        NewMetricsConfig(),
+			settings.KubexThreading: NewThreading(),
+			Metrics:                 settings.NewMetricsConfig(),
 		},
 		Metrics: NewMetricsConfig(),
 	}

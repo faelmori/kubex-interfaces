@@ -24,7 +24,7 @@ type KubexPersistence struct {
 	Viper *viper.Viper `json:"viper,omitempty" yaml:"viper,omitempty" gorm:"viper"`
 }
 
-func NewKubexPersistence() Persistence {
+func NewKubexPersistence(name string) Persistence {
 	return &KubexPersistence{
 		ConfigPath: "",
 		Viper:      viper.New(),

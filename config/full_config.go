@@ -10,7 +10,7 @@ type FullConfigManager[T m.KubexModule] struct {
 	//Configure
 }
 
-func NewFullConfigManager[M m.KubexModule](module M) ConfigManager[M] {
+func NewFullConfigManager[M m.KubexModule](module M) Manager[M] {
 	return &configManager[M]{
 		viper:       v.New(),
 		kubexModule: module,

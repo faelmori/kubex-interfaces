@@ -2,63 +2,35 @@ package tools
 
 import (
 	ks "github.com/faelmori/kubex-interfaces/settings"
+	t "github.com/faelmori/kubex-interfaces/types"
 	"reflect"
-	"strings"
 	"sync/atomic"
 )
-
-// IChannel is an interface that extends IDynChan and adds methods for monitoring and controlling the channel.
-type IChannel[T any, N int] interface {
-	//IDynChan[T, chan T, N]
-
-	// Chan returns the main channel instance.
-	Chan() chan T
-	// GetLast returns the last value sent through the channel.
-	GetLast() *T
-	// SetLast sets the last value sent through the channel.
-	SetLast(v *T)
-	// GetName returns the name of the channel.
-	GetName() string
-	// GetType returns the type of the channel as a string.
-	GetType() string
-	// GetChan returns the channel instance.
-	GetChan() chan T
-	// Listen listens for messages on the channel and processes them.
-	// It will block until a message is received or the channel is closed.
-	Listen() T
-	// Send sends a message to the channel.
-	Send(v *T) error
-	// Monitor returns the system channel for monitoring.
-	Monitor() chan T
-	// startSysMonitor starts the system monitoring for the channel.
-	startSysMonitor()
-	// stopSysMonitor stops the system monitoring for the channel.
-	stopSysMonitor()
-}
 
 // channel is a struct that implements the IChannel and IDynChan interfaces.
 // It provides a more complex implementation of a channel with monitoring capabilities.
 type channel[T any, N int] struct {
-	//dynChan[T, N]                   // IDynChan[T, chan T, N] extends the base channel struct.
+	t.IChannel[T, N]
 
 	mu           ks.KubexThreading // Locker for thread-safe operations.
-	name         string            // Name of the channel.
 	buffers      N                 // Buffer size of the channel.
-	last         atomic.Pointer[T] // Last value sent through the channel.
-	chanT        chan T            // Main channel for communication.
-	chanSys      chan T            // System channel for monitoring.
+	name         string            // Name of the channel.
+	chanAny      chan any          // Main channel for communication.
+	chanSys      chan any          // System channel for monitoring.
 	chanStop     chan struct{}     // Channel to signal stopping of monitoring.
+	chanT        chan T            // Main channel for communication.
+	last         atomic.Pointer[T] // Last value sent through the channel.
 	isSysEnabled bool              // Flag indicating if system monitoring is enabled.
 }
 
 // NewLoaderChanInterface creates a new channel with a name, type, and buffer size.
 // It returns an instance of IChannel.
-func NewLoaderChanInterface[T any, N int](name string, tp *T, buffers N) IChannel[T, N] {
+func NewLoaderChanInterface[T any, N int](name string, tp *T, buffers N) t.IChannel[T, N] {
 	ch := &channel[T, N]{
 		name:     name,
 		buffers:  buffers,
 		last:     atomic.Pointer[T]{},
-		chanSys:  make(chan T, 10),
+		chanSys:  make(chan any, 10),
 		chanStop: make(chan struct{}, 1),
 	}
 	if buffers > 0 {
@@ -74,12 +46,12 @@ func NewLoaderChanInterface[T any, N int](name string, tp *T, buffers N) IChanne
 
 // NewChannel creates a new channel with a name, type, and buffer size.
 // It returns an instance of IChannel.
-func NewChannel[T any, N int](name string, tp *T, buffers N) IChannel[T, N] {
+func NewChannel[T any, N int](name string, tp *T, buffers N) t.IChannel[T, N] {
 	ch := &channel[T, N]{
 		name:     name,
 		buffers:  buffers,
 		last:     atomic.Pointer[T]{},
-		chanSys:  make(chan T, (buffers+1)/2),
+		chanSys:  make(chan any, (buffers+1)/2),
 		chanStop: make(chan struct{}, 1),
 	}
 
@@ -94,88 +66,87 @@ func NewChannel[T any, N int](name string, tp *T, buffers N) IChannel[T, N] {
 	return ch
 }
 
-// Name returns the name of the channel.
-func (c *channel[T, N]) Name() string { return c.name }
+// GetType returns the type of the channel.
+func (c *channel[T, N]) GetType() reflect.Type { return reflect.TypeFor[T]() }
 
-// Chan returns the main channel instance.
-func (c *channel[T, N]) Chan() chan T { return c.chanT }
-
-// Type returns the type of the channel as a string.
-func (c *channel[T, N]) Type() string { return strings.TrimPrefix(reflect.TypeFor[T]().String(), "*") }
-
-func (c *channel[T, N]) GetLast() *T {
-	if c.last.Load() == nil {
-		return nil
-	}
-	return c.last.Load()
-}
-
-func (c *channel[T, N]) SetLast(v *T) {
-	if v == nil {
-		return
-	}
-	c.last.Store(v)
-	if c.chanSys != nil {
-		c.chanSys <- *v
-	}
-}
-
-func (c *channel[T, N]) GetName() string { return c.name }
-
-func (c *channel[T, N]) GetType() string { return reflect.TypeFor[T]().String() }
-
-func (c *channel[T, N]) GetChan() chan T {
-	if c.chanT == nil {
-		c.chanT = make(chan T, 2)
-	}
-	return c.chanT
-}
-
-func (c *channel[T, N]) Listen() T { return <-c.chanT }
-
-func (c *channel[T, N]) Send(v *T) error {
-	if v == nil {
-		return nil
+// GetChan returns the main channel instance.
+func (c *channel[T, N]) GetChan() (chan any, reflect.Type) {
+	if c.chanAny == nil {
+		c.chanAny = make(chan any, 2)
 	}
 	if c.chanT == nil {
 		c.chanT = make(chan T, 2)
 	}
 	if c.chanSys == nil {
-		c.chanSys = make(chan T, 10)
+		c.chanSys = make(chan any, 10)
 	}
-	c.chanT <- *v
-	if c.chanSys != nil {
-		c.chanSys <- *v
+	if c.isSysEnabled {
+		go c.StartSysMonitor()
 	}
+	return c.chanAny, reflect.TypeFor[T]()
+}
+
+// Listen listens for messages on the channel and processes them.
+func (c *channel[T, N]) Listen() (<-chan any, reflect.Type, error) {
+	if c.chanT == nil {
+		c.chanT = make(chan T, 2)
+	}
+	if c.chanSys == nil {
+		c.chanSys = make(chan any, 10)
+	}
+	if c.isSysEnabled {
+		go c.StartSysMonitor()
+	}
+	return c.chanAny, reflect.TypeFor[T](), nil
+}
+
+// Monitor returns the system channel for monitoring.
+func (c *channel[T, N]) Monitor() (chan any, reflect.Type, error) {
+	if c.chanSys == nil {
+		c.chanSys = make(chan any, 10)
+	}
+	if c.isSysEnabled {
+		go c.StartSysMonitor()
+	}
+	return c.chanSys, reflect.TypeFor[T](), nil
+}
+
+// GetLast retrieves the last value sent to the channel.
+func (c *channel[T, N]) GetLast() (any, reflect.Type, error) {
 	if c.last.Load() == nil {
-		c.last.Store(v)
+		return nil, reflect.TypeFor[T](), nil
+	}
+	v := c.last.Load()
+	return v, reflect.TypeFor[T](), nil
+}
+
+// SetLast sets the last value sent to the channel.
+func (c *channel[T, N]) SetLast(v any) error {
+	if v == nil {
+		return nil
+	}
+	c.last.Store(v.(*T))
+	if c.chanSys != nil {
+		c.chanSys <- v
+	}
+	if c.chanT != nil {
+		c.chanT <- v
 	}
 	return nil
 }
 
-func (c *channel[T, N]) Monitor() chan T {
-	if c.chanSys == nil {
-		c.chanSys = make(chan T, 10)
-	}
-	if c.isSysEnabled {
-		return c.chanSys
-	}
-	c.startSysMonitor()
-	return c.chanSys
-}
-
-// startSysMonitor starts a goroutine to monitor the system channel for logging or auditing purposes.
-func (c *channel[T, N]) startSysMonitor() {
+// StartSysMonitor starts a goroutine to monitor the system channel for logging or auditing purposes.
+func (c *channel[T, N]) StartSysMonitor() {
 	// When the channel is created, it will be in a closed state.
 	// The channel will be opened when the first message is sent and keep it open until the channel is closed.
 	// The channel will be closed when the last message is sent and the channel is closed.
 	// Until then, the channel will be in a closed state.
 	if c.chanSys == nil {
 		if c.buffers > 0 {
-			c.chanSys = make(chan T, (c.buffers+1)/2)
+			c.chanSys = make(chan any, (c.buffers+1)/2)
 		} else {
 			c.buffers = 10
-			c.chanSys = make(chan T, c.buffers)
+			c.chanSys = make(chan any, c.buffers)
 		}
 	}
 	if c.chanT == nil {
@@ -186,7 +157,7 @@ func (c *channel[T, N]) startSysMonitor() {
 			c.chanT = make(chan T, c.buffers)
 		}
 	}
-	defer c.stopSysMonitor()
+	defer c.StopSysMonitor()
 	if c.isSysEnabled {
 		return
 	}
@@ -194,11 +165,11 @@ func (c *channel[T, N]) startSysMonitor() {
 	go func() {
 		c.isSysEnabled = true
 		defer c.mu.Done()
-		defer c.stopSysMonitor()
+		defer c.StopSysMonitor()
 		for {
 			select {
 			case v := <-c.chanSys:
-				c.last.Store(&v)
+				c.last.Store(v.(*T))
 			case currMsg := <-c.chanT:
 				vl := reflect.ValueOf(currMsg)
 				if !vl.IsValid() || vl.IsNil() || vl.IsZero() {
@@ -226,8 +197,8 @@ func (c *channel[T, N]) startSysMonitor() {
 	}()
 }
 
-// stopSysMonitor stops the system monitoring goroutine and closes all associated channels.
-func (c *channel[T, N]) stopSysMonitor() {
+// StopSysMonitor stops the system monitoring goroutine and closes all associated channels.
+func (c *channel[T, N]) StopSysMonitor() {
 	defer c.mu.Done()
 
 	if c.chanSys != nil {
@@ -252,4 +223,38 @@ func (c *channel[T, N]) stopSysMonitor() {
 	} else {
 		c.isSysEnabled = true
 	}
+}
+
+// IsSysEnabled checks if the system monitoring is enabled.
+func (c *channel[T, N]) IsSysEnabled() bool { return c.isSysEnabled }
+
+// SetSysEnabled sets the system monitoring to enabled or disabled.
+func (c *channel[T, N]) SetSysEnabled(enabled bool) {
+	c.isSysEnabled = enabled
+	if c.isSysEnabled {
+		c.StartSysMonitor()
+	} else {
+		c.StopSysMonitor()
+	}
+}
+
+// Send sends a message to the channel.
+func (c *channel[T, N]) Send(v any) error {
+	if v == nil {
+		return nil
+	}
+	if c.chanT == nil {
+		c.chanT = make(chan T, 2)
+	}
+	if c.chanSys == nil {
+		c.chanSys = make(chan any, 10)
+	}
+	c.chanT <- v
+	if c.chanSys != nil {
+		c.chanSys <- v
+	}
+	if c.last.Load() == nil {
+		c.last.Store(v.(*T))
+	}
+	return nil
 }

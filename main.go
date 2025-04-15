@@ -7,7 +7,16 @@ import (
 
 func testPropertyA() {
 	prop := c.NewProperty[string]("examplePropertyA", nil)
-	prop.SetValue("example")
+	err := prop.SetValue("example", func(value any) error {
+		if value == "" {
+			return fmt.Errorf("value cannot be empty")
+		}
+		return nil
+	})
+	if err != nil {
+		println("Error setting value:", err)
+		return
+	}
 
 	// Print the property name and value
 	println("Property Name:", prop.GetName())
@@ -56,7 +65,12 @@ func testPropertyB() {
 
 func testPropertyC() {
 	prop := c.NewProperty[any]("propertyC", nil)
-	prop.SetValue("example")
+	prop.SetValue("example", func(value any) error {
+		if value == nil {
+			return fmt.Errorf("value cannot be nil")
+		}
+		return nil
+	})
 
 	// Print the property name and value
 	println("Property Name:", prop.GetName())
@@ -81,7 +95,16 @@ func testPropertyC() {
 
 func testPropertyD() {
 	prop := c.NewProperty[any]("propertyD", nil)
-	prop.SetValue(make(chan int, 1))
+	err := prop.SetValue(make(chan int, 1), func(value any) error {
+		if value == nil {
+			return fmt.Errorf("value cannot be nil")
+		}
+		return nil
+	})
+	if err != nil {
+		println("Error setting value:", err)
+		return
+	}
 
 	// Print the property name and value
 	println("Property Name:", prop.GetName())
@@ -106,7 +129,16 @@ func testPropertyD() {
 
 func testPropertyE() {
 	prop := c.NewProperty[chan int]("propertyE", nil)
-	prop.SetValue(make(chan int, 1))
+	err := prop.SetValue(make(chan int, 1), func(value any) error {
+		if value == nil {
+			return fmt.Errorf("value cannot be nil")
+		}
+		return nil
+	})
+	if err != nil {
+		println("Error setting value:", err)
+		return
+	}
 
 	// Print the property name and value
 	println("Property Name:", prop.GetName())
@@ -129,7 +161,7 @@ func testPropertyE() {
 	}
 }
 
-func main() {
+func mainTeste() {
 	testPropertyA()
 	println("======================================")
 	testPropertyB()

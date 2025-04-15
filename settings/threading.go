@@ -1,40 +1,14 @@
 package settings
 
-import "sync"
-
-// Mutex is a struct that holds the mutexes
-type Mutex interface {
-	TryLock() bool
-	Lock()
-	Unlock()
-	RLock()
-	RUnlock()
-	LockFunc(func())
-	UnlockFunc(func())
-	LockFuncWithArgs(func(interface{}), interface{})
-	UnlockFuncWithArgs(func(interface{}), interface{})
-}
-
-// Sync is a struct that holds the sync.WaitGroup
-type Sync interface {
-	Add(delta int)
-	Wait()
-	Done()
-	WaitGroup() *sync.WaitGroup
-	WaitGroupAdd(delta int)
-	WaitGroupDone()
-}
-
-// Threading is a struct that holds the defer function
-type Threading interface {
-	Mutex
-	Sync
-	Defer() func(interface{})
-}
+import (
+	t "github.com/faelmori/kubex-interfaces/types"
+	"sync"
+)
 
 // KubexThreading is a struct that holds the mutexes for the spider
 type KubexThreading struct {
-	Threading
+	// IThreading interface for threading
+	t.IThreading
 	// Mutex for thread safety
 	mu sync.RWMutex
 	// SyncGroup for synchronization
@@ -105,13 +79,15 @@ func (k *KubexThreading) UnlockFuncWithArgs(f func(interface{}), args interface{
 }
 
 // Defer returns a function that will be executed when the mutex is unlocked
-func (k *KubexThreading) Defer() func(interface{}) {
-	return func(f interface{}) {
-		k.mu.Unlock()
-		if f == nil {
-			return
+func (k *KubexThreading) Defer() t.IDeferFunc {
+	return func(f func(), args interface{}) func() error {
+		return func() error {
+			k.mu.Unlock()
+			if f != nil {
+				f()
+			}
+			return nil
 		}
-		f.(func())()
 	}
 }
 
