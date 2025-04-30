@@ -14,3 +14,15 @@ type IDatabaseService[T any] interface {
 	Monitor(interval time.Duration) error             // Monitoramento contínuo do banco
 	AddListener(event string, listener func(T) error) // Escuta eventos no banco
 }
+
+type IDatabase interface {
+	Connect() error
+	Disconnect() error
+	Ping() error
+
+	Execute(query string, args ...any) (IResult, error)
+	Query(query string, args ...any) (IRowSet, error)
+	BeginTransaction() (ITransaction, error)
+	GetConfig() any
+	SetConfig(any) error
+}

@@ -94,4 +94,4 @@ replace github.com/faelmori/gastype => ../gastype
 
 replace github.com/faelmori/gkbxsrv => ../gkbxsrv
 
-replace github.com/faelmori/logz => ../logz
+//replace github.com/faelmori/logz => ../logz

@@ -28,10 +28,12 @@ type KubexAuthentication struct {
 	Scope        string `json:"scope,omitempty" yaml:"scope,omitempty" gorm:"scope"`                      // Scope for authentication
 }
 
-func (s *KubexAuthentication) GetUsername() string                 { return s.Username }
-func (s *KubexAuthentication) SetUsername(username string)         { s.Username = username }
-func (s *KubexAuthentication) GetPassword() string                 { return s.Password }
-func (s *KubexAuthentication) SetPassword(password string)         { s.Password = password }
+func (s *KubexAuthentication) GetUsername() string         { return s.Username }
+func (s *KubexAuthentication) SetUsername(username string) { s.Username = username }
+
+func (s *KubexAuthentication) GetPassword() string         { return s.Password }
+func (s *KubexAuthentication) SetPassword(password string) { s.Password = password }
+
 func (s *KubexAuthentication) GetClientId() string                 { return s.ClientId }
 func (s *KubexAuthentication) SetClientId(clientId string)         { s.ClientId = clientId }
 func (s *KubexAuthentication) GetClientSecret() string             { return s.ClientSecret }

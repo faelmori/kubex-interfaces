@@ -36,4 +36,7 @@ type IChannel[T any, N int] interface {
 
 	// GetType returns the type of the channel.
 	GetType() reflect.Type
+
+	// Close closes the channel.
+	Close() error
 }

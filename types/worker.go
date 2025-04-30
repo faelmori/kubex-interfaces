@@ -34,16 +34,19 @@ type IWorkerPool interface {
 
 	GetWorkerPool() []IWorker
 
+	Report() string
 	Debug()
 	SendToWorker(workerID int, job IJob) error
+	AddListener(event string, listener ChangeListener[any]) error
 }
 
-type IWorkerManager interface {
+type IWorkerManager[T any] interface {
 	GetID() string
 	GetProperties() map[string]Property[any]
 	GetWorker(int) (IWorker, error)
 	GetWorkerChannel(int) (chan IJob, error)
 	GetWorkerPool() []IWorker
+
 	SetWorkerPool([]IWorker)
 	SetWorkerCount(int) error
 
@@ -55,10 +58,17 @@ type IWorkerManager interface {
 	SetWorkerResultQueue(int, IChannel[IResult, int]) error
 	SetWorkerStatus(int, string) error
 	SetWorkerJobQueueCount(int, int) error
-	GetWorkerLimit() int
 
+	GetWorkerLimit() int
 	GetWorkerCount() int
-	GetJobQueue() (IChannel[IAction, int], error)
+	GetWorkerStatus() string
+	GetWorkerStatusByID(int) string
+
+	GetWorkerPoolInstance() IWorkerPool
+	GetWorkerPoolChannel() (IChannel[IJob, int], error)
+	GetWorkerPoolResultChannel() (IChannel[IResult, int], error)
+	GetWorkerPoolJobQueue() (IChannel[IAction, int], error)
+	GetWorkerPoolResultQueue() (IChannel[IResult, int], error)
 }
 
 type IJob interface {

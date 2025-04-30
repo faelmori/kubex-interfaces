@@ -4,14 +4,14 @@ import (
 	"database/sql"
 	"fmt"
 	. "github.com/faelmori/kubex-interfaces/databases/types"
+	"github.com/faelmori/logz"
 	"time"
 )
 
-// ConnectDB estabelece uma conexão com o banco de dados especificado na configuração.
-// config: a configuração contendo o tipo de banco de dados e a string de conexão.
-// Retorna um ponteiro para a conexão com o banco de dados e um erro, se houver.
-func ConnectDB(config Config) (*sql.DB, error) {
-	db, err := sql.Open(config.DestinationType, config.DestinationConnectionString)
+// ConnectDB establishes a connection to the database using the provided configuration.
+func ConnectDB(config *DBConfigBase) (*sql.DB, error) {
+
+	db, err := sql.Open(config.Connection.Driver, config.Connection.Dsn)
 	if err != nil {
 		return nil, fmt.Errorf("falha ao conectar ao banco de dados: %w", err)
 	}
@@ -24,18 +24,15 @@ func ConnectDB(config Config) (*sql.DB, error) {
 	return db, nil
 }
 
-// reconnectDB tenta restabelecer a conexão com o banco de dados especificado na configuração.
-// config: a configuração contendo o tipo de banco de dados e a string de conexão.
-// Tenta reconectar até 5 vezes com um intervalo de 10 segundos entre as tentativas.
-// Retorna um ponteiro para a conexão com o banco de dados e um erro, se houver.
-func reconnectDB(config Config) (*sql.DB, error) {
+// ReconnectDB attempts to reconnect to the database using the provided configuration.
+func ReconnectDB(config DBConfigBase) (*sql.DB, error) {
 	var db *sql.DB
 	var err error
 	maxRetries := 5
 	retryInterval := 10 * time.Second
 
 	for i := 0; i < maxRetries; i++ {
-		db, err = sql.Open(config.DestinationType, config.DestinationConnectionString)
+		db, err = sql.Open(config.Connection.Driver, config.Connection.Dsn)
 		if err == nil {
 			if pingErr := db.Ping(); pingErr == nil {
 				return db, nil
@@ -45,4 +42,33 @@ func reconnectDB(config Config) (*sql.DB, error) {
 	}
 
 	return nil, fmt.Errorf("falha ao reconectar ao banco de dados após %d tentativas: %w", maxRetries, err)
+}
+
+// VacuumDatabase executes the VACUUM command on the specified SQLite database.
+func VacuumDatabase(dbPath string) error {
+	db, err := sql.Open("sqlite3", dbPath)
+	if err != nil {
+		return fmt.Errorf("falha ao abrir o banco de dados: %w", err)
+	}
+	defer func(db *sql.DB) {
+		_ = db.Close()
+	}(db)
+
+	_, err = db.Exec("VACUUM")
+	if err != nil {
+		return fmt.Errorf("falha ao executar VACUUM: %w", err)
+	}
+
+	logz.InfoCtx("VACUUM executado com sucesso", map[string]interface{}{})
+	return nil
+}
+
+// CloseDB closes the database connection.
+func CloseDB(db *sql.DB) error {
+	if db != nil {
+		if err := db.Close(); err != nil {
+			return fmt.Errorf("falha ao fechar a conexão com o banco de dados: %w", err)
+		}
+	}
+	return nil
 }

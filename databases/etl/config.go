@@ -1,12 +1,10 @@
 package etl
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	c "github.com/faelmori/kubex-interfaces/config"
 	t "github.com/faelmori/kubex-interfaces/databases/types"
-	"github.com/faelmori/logz"
 	"os"
 
 	"reflect"
@@ -20,7 +18,7 @@ type ConfigManager struct {
 
 func (cm *ConfigManager) LoadConfig(filePath string) error {
 	// Carrega JSON ou outras fontes de configuração
-	config, err := LoadConfigFile(filePath)
+	config, err := cm.LoadConfigFile(filePath)
 	if err != nil {
 		return err
 	}
@@ -30,25 +28,7 @@ func (cm *ConfigManager) LoadConfig(filePath string) error {
 	return nil
 }
 
-func VacuumDatabase(dbPath string) error {
-	db, err := sql.Open("sqlite3", dbPath)
-	if err != nil {
-		return fmt.Errorf("falha ao abrir o banco de dados: %w", err)
-	}
-	defer func(db *sql.DB) {
-		_ = db.Close()
-	}(db)
-
-	_, err = db.Exec("VACUUM")
-	if err != nil {
-		return fmt.Errorf("falha ao executar VACUUM: %w", err)
-	}
-
-	logz.InfoCtx("VACUUM executado com sucesso", map[string]interface{}{})
-	return nil
-}
-
-func LoadConfigFile(fileConfigPath string) (t.Config, error) {
+func (cm *ConfigManager) LoadConfigFile(fileConfigPath string) (t.Config, error) {
 	fileData, err := os.ReadFile(fileConfigPath)
 	if err != nil {
 		return t.Config{}, fmt.Errorf("falha ao ler o arquivo de configuração: %w", err)
@@ -70,23 +50,7 @@ func LoadConfigFile(fileConfigPath string) (t.Config, error) {
 	return config, nil
 }
 
-func LoadJobFromFile(filePath string) (*t.VJob, error) {
-	fileData, fileDataErr := os.ReadFile(filePath)
-	if fileDataErr != nil {
-		logz.ErrorCtx("failed to load file: "+fileDataErr.Error(), map[string]interface{}{})
-		return nil, fileDataErr
-	}
-
-	var job t.VJob
-	if unmarshalErr := json.Unmarshal(fileData, &job); unmarshalErr != nil {
-		logz.ErrorCtx("failed to unmarshal file data: "+unmarshalErr.Error(), map[string]interface{}{})
-		return nil, unmarshalErr
-	}
-
-	return &job, nil
-}
-
-func GenerateConfigTemplate(filePath string) error {
+func (cm *ConfigManager) GenerateConfigTemplate(filePath string) error {
 	config := t.Config{
 		SourceType:                  "sqlite,postgres,mysql,oracle,sqlserver",
 		SourceConnectionString:      "connection_string_for_source_database",
@@ -147,38 +111,3 @@ func GenerateConfigTemplate(filePath string) error {
 
 	return nil
 }
-
-//func GetETLJobs() (JobList, error) {
-//	cwd, cwdErr := utils.GetWorkDir()
-//	if cwdErr != nil {
-//		logz.ErrorCtx("failed to get current working directory: "+cwdErr.Error(), map[string]interface{}{})
-//		return nil, cwdErr
-//	}
-//	jobsCwd := filepath.Join(cwd, "jobs")
-//
-//	files, filesErr := os.ReadDir(jobsCwd)
-//	if filesErr != nil {
-//		logz.ErrorCtx("failed to read jobs directory: "+filesErr.Error(), map[string]interface{}{})
-//		return nil, filesErr
-//	}
-//
-//	var jobs VJobList
-//	for _, file := range files {
-//		if file.IsDir() {
-//			continue
-//		}
-//
-//		filePath := filepath.Join(jobsCwd, file.Name())
-//		job, jobErr := LoadJobFromFile(filePath)
-//		if jobErr != nil {
-//			logz.ErrorCtx("failed to load job from file: "+jobErr.Error(), map[string]interface{}{})
-//			return nil, jobErr
-//		}
-//
-//		vJob := *job
-//
-//		jobs.VJobs = append(jobs.VJobs, vJob)
-//	}
-//
-//	return &jobs, nil
-//}

@@ -68,5 +68,4 @@ var triggerTemplates = map[string]string{
             {{.Statement}};
         END;
     `,
-	// Adicione outros templates conforme necessário
 }
